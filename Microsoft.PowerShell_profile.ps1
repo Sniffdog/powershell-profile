@@ -7,6 +7,21 @@ function prompt
     "[$env:USERNAME] $currentDir>"
 }
 
+function New-IndyFeedCurrentItem
+{
+    param(
+        [parameter(mandatory=$true)]
+        [string]$Item
+    )
+    $Item = $Item -replace "&apos;", "'"`
+                  -replace "&lt;", "<"`
+                  -replace "&gt;", ">"`
+                  -replace "&quot;", '"'`
+                  -replace "&amp;", "&"
+    $Item | Out-File $PSScriptRoot\IndyFeed.txt
+    return $Item
+}
+
 # Set initial working directory
 Set-Location E:\Cher\Scripts
 
@@ -39,7 +54,7 @@ $weatherString = $Data.query.results.channel.item.forecast | ?{$_.date -eq (Get-
 $weatherString = $weatherString.high + "$([char]0x00B0) " + $weatherString.text
 
 # Get news feed from Independent.co.uk
-[xml]$IndyRSS = Invoke-WebRequest -Uri 'http://www.independent.co.uk/rss'
+[xml]$IndyRSS = Invoke-WebRequest -Uri 'http://www.independent.co.uk/news/uk/politics/rss'
 $IndyFeed = $IndyRSS.rss.channel
 $Timer = New-Object System.Timers.Timer
 $Timer.Interval = 30000
@@ -47,9 +62,8 @@ $TimerAction = {
     $i++
     If ($i -lt ($IndyFeed.Item.Count))
     {
-        $IndyFeedCurrentItem = $IndyFeed.Item[$i].title
+        $IndyFeedCurrentItem = New-IndyFeedCurrentItem $IndyFeed.Item[$i].title
         $Host.UI.RawUI.WindowTitle = $PWD.Path + " ~ " + $weatherString + " ~ " + $IndyFeedCurrentItem
-        $IndyFeedCurrentItem | Out-File $PSScriptRoot\IndyFeed.txt
     }
 }
 Register-ObjectEvent -InputObject $Timer -EventName Elapsed -SourceIdentifier IndyFeed -Action $TimerAction | Out-Null
