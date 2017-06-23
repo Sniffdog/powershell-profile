@@ -4,11 +4,13 @@ function prompt
     $IndyFeedCurrentItem = Get-Content $PSScriptRoot\IndyFeed.txt
     $host.UI.RawUI.WindowTitle = $PWD.Path + " ~ " + $weatherString + " ~ " + $IndyFeedCurrentItem
     $currentDir = Split-Path (Get-Location) -Leaf
-    "[$env:USERNAME] $currentDir>"
+    Write-Host "[$env:USERNAME] " -NoNewline -ForegroundColor Magenta
+    "$currentDir>"
 }
 
 function New-IndyFeedCurrentItem
 {
+    # Format RSS Item and store in temp file
     param(
         [parameter(mandatory=$true)]
         [string]$Item
@@ -17,7 +19,8 @@ function New-IndyFeedCurrentItem
                   -replace "&lt;", "<"`
                   -replace "&gt;", ">"`
                   -replace "&quot;", '"'`
-                  -replace "&amp;", "&"
+                  -replace "&amp;", "&"`
+                  -replace "??", "£"
     $Item | Out-File $PSScriptRoot\IndyFeed.txt
     return $Item
 }
@@ -54,16 +57,21 @@ $weatherString = $Data.query.results.channel.item.forecast | ?{$_.date -eq (Get-
 $weatherString = $weatherString.high + "$([char]0x00B0) " + $weatherString.text
 
 # Get news feed from Independent.co.uk
-[xml]$IndyRSS = Invoke-WebRequest -Uri 'http://www.independent.co.uk/news/uk/politics/rss'
-$IndyFeed = $IndyRSS.rss.channel
+$i = 0
+Remove-Item -Path $PSScriptRoot\IndyFeed.* -Force
+[xml]$IndyRSS = Invoke-WebRequest -Uri 'http://www.independent.co.uk/news/uk/rss'
+$IndyRSS.rss.channel | Export-Clixml $PSScriptRoot\IndyFeed.xml
+$IndyFeed = Import-Clixml $PSScriptRoot\IndyFeed.xml
+
+# Set background task to loop through RSS feed
 $Timer = New-Object System.Timers.Timer
 $Timer.Interval = 30000
 $TimerAction = {
-    $i++
     If ($i -lt ($IndyFeed.Item.Count))
     {
         $IndyFeedCurrentItem = New-IndyFeedCurrentItem $IndyFeed.Item[$i].title
         $Host.UI.RawUI.WindowTitle = $PWD.Path + " ~ " + $weatherString + " ~ " + $IndyFeedCurrentItem
+        $i++
     }
 }
 Register-ObjectEvent -InputObject $Timer -EventName Elapsed -SourceIdentifier IndyFeed -Action $TimerAction | Out-Null
