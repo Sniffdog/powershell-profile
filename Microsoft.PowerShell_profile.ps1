@@ -41,7 +41,6 @@ $weatherString = $weatherString.high + "$([char]0x00B0) " + $weatherString.text
 # Get news feed from Independent.co.uk
 [xml]$IndyRSS = Invoke-WebRequest -Uri 'http://www.independent.co.uk/rss'
 $IndyFeed = $IndyRSS.rss.channel
-$IndyFeedCurrentItem = ""
 $Timer = New-Object System.Timers.Timer
 $Timer.Interval = 30000
 $TimerAction = {
