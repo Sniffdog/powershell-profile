@@ -40,14 +40,14 @@ If (Test-Path $profileInitialDir)
 
 # Configure shell theme/size
 $host.UI.RawUI.ForegroundColor = "White"
-$host.UI.RawUI.BackgroundColor = "Black"
+$host.UI.RawUI.BackgroundColor = "DarkGray"
 $hostBufferSize = $host.UI.RawUI.BufferSize
-$hostBufferSize.Width = 150
+$hostBufferSize.Width = 125
 $hostBufferSize.Height = 5000
 $host.UI.RawUI.BufferSize = $hostBufferSize
 $hostWindowSize = $host.UI.RawUI.WindowSize
-$hostWindowSize.Width = 150
-$hostWindowSize.Height = 50
+$hostWindowSize.Width = 125
+$hostWindowSize.Height = 40
 $host.UI.RawUI.WindowSize = $hostWindowSize
 Clear-Host
 
