@@ -26,8 +26,7 @@ function New-IndyFeedCurrentItem
                   -replace "&lt;", "<"`
                   -replace "&gt;", ">"`
                   -replace "&quot;", '"'`
-                  -replace "&amp;", "&"`
-                  -replace "??", "£"
+                  -replace "&amp;", "&"
     $Item | Out-File $PSScriptRoot\IndyFeed.txt
     return $Item
 }
