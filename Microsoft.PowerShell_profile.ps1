@@ -1,21 +1,22 @@
 #region globals
 $profileInitialDir = 'E:\Cher\Scripts'
-$weatherCity = "Salisbury"
-$weatherCountry = "UK"
+$RSSUri = 'http://www.independent.co.uk/news/uk/rss'
+$weatherCity = 'Salisbury'
+$weatherCountry = 'UK'
 #endregion
 
 #region functions
 function prompt
 {
     # Set prompt options
-    $IndyFeedCurrentItem = Get-Content $PSScriptRoot\IndyFeed.txt
+    $IndyFeedCurrentItem = Get-Content $PSScriptRoot\RSSFeed.txt
     $host.UI.RawUI.WindowTitle = $PWD.Path + " ~ " + $weatherString + " ~ " + $IndyFeedCurrentItem
     $currentDir = Split-Path (Get-Location) -Leaf
     Write-Host "[$env:USERNAME] " -NoNewline -ForegroundColor Magenta
     "$currentDir>"
 }
 
-function New-IndyFeedCurrentItem
+function New-RSSFeedCurrentItem
 {
     # Format RSS Item and store in temp file
     param(
@@ -27,7 +28,7 @@ function New-IndyFeedCurrentItem
                   -replace "&gt;", ">"`
                   -replace "&quot;", '"'`
                   -replace "&amp;", "&"
-    $Item | Out-File $PSScriptRoot\IndyFeed.txt
+    $Item | Out-File $PSScriptRoot\RSSFeed.txt
     return $Item
 }
 #endregion
@@ -42,12 +43,12 @@ If (Test-Path $profileInitialDir)
 $host.UI.RawUI.ForegroundColor = "White"
 $host.UI.RawUI.BackgroundColor = "DarkGray"
 $hostBufferSize = $host.UI.RawUI.BufferSize
-$hostBufferSize.Width = 125
+$hostBufferSize.Width = 150
 $hostBufferSize.Height = 5000
 $host.UI.RawUI.BufferSize = $hostBufferSize
 $hostWindowSize = $host.UI.RawUI.WindowSize
-$hostWindowSize.Width = 125
-$hostWindowSize.Height = 40
+$hostWindowSize.Width = 150
+$hostWindowSize.Height = 50
 $host.UI.RawUI.WindowSize = $hostWindowSize
 Clear-Host
 
@@ -63,23 +64,23 @@ $data = Invoke-RestMethod -Uri  $uri
 $weatherString = $data.query.results.channel.item.forecast | ?{$_.date -eq (Get-Date).ToString('dd MMM yyyy')}
 $weatherString = $weatherString.high + "$([char]0x00B0) " + $weatherString.text
 
-# Get news feed from Independent.co.uk
+# Get news feed from RSS url
 $i = 0
-Remove-Item -Path $PSScriptRoot\IndyFeed.* -Force
-[xml]$indyRSS = Invoke-WebRequest -Uri 'http://www.independent.co.uk/news/uk/rss'
-$indyRSS.rss.channel | Export-Clixml $PSScriptRoot\IndyFeed.xml
-$indyFeed = Import-Clixml $PSScriptRoot\IndyFeed.xml
+Remove-Item -Path $PSScriptRoot\RSSFeed.* -Force
+[xml]$RSS = Invoke-WebRequest -Uri $RSSUri
+$RSS.rss.channel | Export-Clixml $PSScriptRoot\RSSFeed.xml
+$RSSFeed = Import-Clixml $PSScriptRoot\RSSFeed.xml
 
 # Set background task to loop through RSS feed
 $timer = New-Object System.Timers.Timer
 $timer.Interval = 30000
 $timerAction = {
-    If ($i -lt ($indyFeed.Item.Count))
+    If ($i -lt ($RSSFeed.Item.Count))
     {
-        $indyFeedCurrentItem = New-IndyFeedCurrentItem $indyFeed.Item[$i].title
+        $indyFeedCurrentItem = New-RSSFeedCurrentItem $RSSFeed.Item[$i].title
         $host.UI.RawUI.WindowTitle = $PWD.Path + " ~ " + $weatherString + " ~ " + $indyFeedCurrentItem
         $i++
     }
 }
-Register-ObjectEvent -InputObject $timer -EventName Elapsed -SourceIdentifier IndyFeed -Action $timerAction | Out-Null
+Register-ObjectEvent -InputObject $timer -EventName Elapsed -SourceIdentifier RSSFeed -Action $timerAction | Out-Null
 $timer.Start()
