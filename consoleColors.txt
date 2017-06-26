@@ -21,19 +21,7 @@ ColorTable05 = DarkMagenta = 562401
 ColorTable06 = DarkYellow = f0edee
 
 # Custom Dark Theme
-ColorTable00 = Black = 0
-ColorTable01 = DarkBlue = 800000
-ColorTable02 = DarkGreen = 008000
-ColorTable03 = DarkCyan = 808000
-ColorTable04 = DarkRed = 000080
-ColorTable05 = DarkMagenta = 222222 (background)
-ColorTable06 = DarkYellow = 008080
-ColorTable07 = Gray = c0c0c0
-ColorTable08 = DarkGray = 808080
-ColorTable09 = Blue = ff0000
-ColorTable10 = Green = 00ff00
-ColorTable11 = Cyan = ffff00
-ColorTable12 = Red = 0000ff
-ColorTable13 = Magenta = ff00ff
-ColorTable14 = Yellow = 00ffff
-ColorTable15 = White = ffffff
+ColorTable04 = DarkRed = 2b39c0
+ColorTable05 = DarkMagenta = 222222
+ColorTable06 = DarkYellow = fc4f1
+ColorTable11 = Cyan = b98029
