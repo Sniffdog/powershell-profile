@@ -1,3 +1,6 @@
+#region modules
+Import-Module $PSScriptRoot\Cowsay.psm1
+#endregion
 #region globals
 $profileInitialDir = 'E:\Cher\Scripts'
 $RSSUri = 'http://www.independent.co.uk/news/uk/rss'
@@ -69,30 +72,39 @@ function Set-ConsoleTheme
     }
 }
 
-function ls {
+function ls 
+{
   $regex_opts = ([System.Text.RegularExpressions.RegexOptions]::IgnoreCase -bor [System.Text.RegularExpressions.RegexOptions]::Compiled)
   $fore = $Host.UI.RawUI.ForegroundColor
   $ls_compressed = New-Object System.Text.RegularExpressions.Regex('\.(zip|tar|gz|rar)$', $regex_opts)
   $ls_executable = New-Object System.Text.RegularExpressions.Regex('\.(exe|bat|cmd|ps1|psm1|vbs|rb|reg|dll|o|lib)$', $regex_opts)
   $ls_source = New-Object System.Text.RegularExpressions.Regex('\.(py|pl|cs|rb|h|cpp)$', $regex_opts)
   $ls_text = New-Object System.Text.RegularExpressions.Regex('\.(txt|cfg|conf|ini|csv|log|xml)$', $regex_opts)
-
   Invoke-Expression ("Get-ChildItem $args") |
     %{
       if ($_.GetType().Name -eq 'DirectoryInfo') {
-        $fore = 'Cyan'
+        $Host.UI.RawUI.ForegroundColor = 'DarkCyan'
+        $_
+        $Host.UI.RawUI.ForegroundColor = $fore
       } elseif ($ls_compressed.IsMatch($_.Name)) {
-        $fore = 'DarkYellow'
+        $Host.UI.RawUI.ForegroundColor = 'DarkYellow'
+        $_
+        $Host.UI.RawUI.ForegroundColor = $fore
       } elseif ($ls_executable.IsMatch($_.Name)) {
-        $fore = 'DarkRed'
+        $Host.UI.RawUI.ForegroundColor = 'DarkRed'
+        $_
+        $Host.UI.RawUI.ForegroundColor = $fore
       } elseif ($ls_text.IsMatch($_.Name)) {
-        $fore = 'DarkGreen'
+        $Host.UI.RawUI.ForegroundColor = 'DarkGreen'
+        $_
+        $Host.UI.RawUI.ForegroundColor = $fore
       } elseif ($ls_source.IsMatch($_.Name)) {
-        $fore = 'DarkGray'
+        $Host.UI.RawUI.ForegroundColor = 'DarkGray'
+        $_
+        $Host.UI.RawUI.ForegroundColor = $fore
       } else {
-        $fore = 'DarkMagenta'
+        $_
       }
-      $_ | Out-String -Stream | Write-Host -ForegroundColor $fore
     }
 }
 #endregion
@@ -159,4 +171,15 @@ $timerAction = {
 Register-ObjectEvent -InputObject $timer -EventName Elapsed -SourceIdentifier RSSFeed -Action $timerAction | Out-Null
 $timer.Start()
 
-Write-Host "Hello $env:USERNAME!"
+# Message of the day
+If ((Get-Item $PSScriptRoot\RSSQuote.xml).LastWriteTime.Date -eq (Get-Date).Date)
+{
+    $RSSQuoteItem = (Import-Clixml $PSScriptRoot\RSSQuote.xml).Item.title
+}
+else
+{
+    [xml]$RSSQuote = Invoke-WebRequest -Uri 'https://www.quotesdaddy.com/feed/tagged/inspirational'
+    $RSSQuote.rss.channel | Export-Clixml $PSScriptRoot\RSSQuote.xml
+    $RSSQuoteItem = (Import-Clixml $PSScriptRoot\RSSQuote.xml).Item.title
+}
+Cowsay $RSSQuoteItem
