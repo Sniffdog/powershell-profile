@@ -167,6 +167,7 @@ $Host.PrivateData.WarningForegroundColor = 'DarkYellow'
 $Host.PrivateData.ErrorForegroundColor = 'DarkRed'
 $Host.PrivateData.WarningBackgroundColor = 'DarkMagenta'
 $Host.PrivateData.ErrorBackgroundColor = 'DarkMagenta'
+<#
 $HostBufferSize = $Host.UI.RawUI.BufferSize
 $HostBufferSize.Width = 150
 $HostBufferSize.Height = 5000
@@ -175,6 +176,7 @@ $HostWindowSize = $Host.UI.RawUI.WindowSize
 $HostWindowSize.Width = 150
 $HostWindowSize.Height = 40
 $Host.UI.RawUI.WindowSize = $HostWindowSize
+#>
 Clear-Host
 
 # Configure PSReadLine module.PSReadLine is installed by default in Windows 10. 
@@ -183,6 +185,8 @@ Set-PSReadlineKeyHandler -Key Tab -Function Complete
 Set-PSReadlineKeyHandler -Key UpArrow -Function HistorySearchBackward
 Set-PSReadlineOption -TokenKind Variable -ForegroundColor DarkRed
 Set-PSReadlineOption -TokenKind Command -ForegroundColor DarkYellow
+Set-PSReadlineOption -TokenKind Operator -ForegroundColor Gray
+Set-PSReadlineOption -TokenKind Parameter -ForegroundColor Gray
 
 # Get weather information from Yahoo
 $WeatherUri = ("https://query.yahooapis.com/v1/public/yql?q=select * from weather.forecast where woeid in " +
