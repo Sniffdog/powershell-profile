@@ -1,3 +1,4 @@
+#Requires -version 5.0
 <#
     .SYNOPSIS
     Custom PowerShell profile with some Unix like additions
@@ -112,7 +113,7 @@ function ls {
         '\.(txt|cfg|conf|ini|csv|log|xml)$', $RegexOpts)
     Invoke-Expression ("Get-ChildItem $args") | ForEach-Object {
         if ($_.GetType().Name -eq 'DirectoryInfo') {
-            $Host.UI.RawUI.ForegroundColor = 'DarkCyan'
+            $Host.UI.RawUI.ForegroundColor = 'Gray'
             $_
             $Host.UI.RawUI.ForegroundColor = $Fore
         } elseif ($LSCompressed.IsMatch($_.Name)) {
@@ -152,6 +153,12 @@ if (Test-Path $ProfileInitialDir)
 
 # Unregister PowerShell 'ls' alias as we have defined our own 'ls' function
 Remove-Item alias:\ls
+
+# Register custom aliases
+New-Alias -Name "ifconfig" -Value "ipconfig.exe"
+New-Alias -Name "touch" -Value "New-Item"
+New-Alias -Name "grep" -Value "Select-String"
+New-Alias -Name "fetch" -Value "Invoke-WebRequest"
 
 # Configure shell theme/size
 $Host.UI.RawUI.ForegroundColor = 'Gray'
