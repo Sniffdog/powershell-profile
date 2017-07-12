@@ -1,6 +1,14 @@
 <#
     .SYNOPSIS
     Custom PowerShell profile with some Unix like additions
+    .DESCRIPTION
+    This custom PowerShell profile includes the following features:
+        * Custom PowerShell Dark theme
+        * Unix style prompt with username displayed (similar to grml-zsh prompt)
+        * Custom PowerShell windows title which includes current weather and an RSS news headline ticker
+        * Custom 'ls' command to display coloured output (unix style)
+    .NOTES
+    Created by: Ryan Kowalewski
 #>
 
 
@@ -90,73 +98,76 @@ function Set-ConsoleTheme {
 }
 
 
-function ls 
-{
-  $regex_opts = ([System.Text.RegularExpressions.RegexOptions]::IgnoreCase -bor [System.Text.RegularExpressions.RegexOptions]::Compiled)
-  $fore = $Host.UI.RawUI.ForegroundColor
-  $ls_compressed = New-Object System.Text.RegularExpressions.Regex('\.(zip|tar|gz|rar)$', $regex_opts)
-  $ls_executable = New-Object System.Text.RegularExpressions.Regex('\.(exe|bat|cmd|ps1|psm1|vbs|rb|reg|dll|o|lib)$', $regex_opts)
-  $ls_source = New-Object System.Text.RegularExpressions.Regex('\.(py|pl|cs|rb|h|cpp)$', $regex_opts)
-  $ls_text = New-Object System.Text.RegularExpressions.Regex('\.(txt|cfg|conf|ini|csv|log|xml)$', $regex_opts)
-  Invoke-Expression ("Get-ChildItem $args") |
-    %{
-      if ($_.GetType().Name -eq 'DirectoryInfo') {
-        $Host.UI.RawUI.ForegroundColor = 'DarkCyan'
-        $_
-        $Host.UI.RawUI.ForegroundColor = $fore
-      } elseif ($ls_compressed.IsMatch($_.Name)) {
-        $Host.UI.RawUI.ForegroundColor = 'DarkYellow'
-        $_
-        $Host.UI.RawUI.ForegroundColor = $fore
-      } elseif ($ls_executable.IsMatch($_.Name)) {
-        $Host.UI.RawUI.ForegroundColor = 'DarkRed'
-        $_
-        $Host.UI.RawUI.ForegroundColor = $fore
-      } elseif ($ls_text.IsMatch($_.Name)) {
-        $Host.UI.RawUI.ForegroundColor = 'DarkGreen'
-        $_
-        $Host.UI.RawUI.ForegroundColor = $fore
-      } elseif ($ls_source.IsMatch($_.Name)) {
-        $Host.UI.RawUI.ForegroundColor = 'DarkGray'
-        $_
-        $Host.UI.RawUI.ForegroundColor = $fore
-      } else {
-        $_
-      }
+function ls {
+    $RegexOpts = ([System.Text.RegularExpressions.RegexOptions]::IgnoreCase -bor 
+                  [System.Text.RegularExpressions.RegexOptions]::Compiled)
+    $Fore = $Host.UI.RawUI.ForegroundColor
+    $LSCompressed = New-Object System.Text.RegularExpressions.Regex(
+        '\.(zip|tar|gz|rar)$', $RegexOpts)
+    $LSExecutable = New-Object System.Text.RegularExpressions.Regex(
+        '\.(exe|bat|cmd|ps1|psm1|vbs|rb|reg|dll|o|lib)$', $RegexOpts)
+    $LSSource = New-Object System.Text.RegularExpressions.Regex(
+        '\.(py|pl|cs|rb|h|cpp)$', $RegexOpts)
+    $LSText = New-Object System.Text.RegularExpressions.Regex(
+        '\.(txt|cfg|conf|ini|csv|log|xml)$', $RegexOpts)
+    Invoke-Expression ("Get-ChildItem $args") | ForEach-Object {
+        if ($_.GetType().Name -eq 'DirectoryInfo') {
+            $Host.UI.RawUI.ForegroundColor = 'DarkCyan'
+            $_
+            $Host.UI.RawUI.ForegroundColor = $Fore
+        } elseif ($LSCompressed.IsMatch($_.Name)) {
+            $Host.UI.RawUI.ForegroundColor = 'DarkYellow'
+            $_
+            $Host.UI.RawUI.ForegroundColor = $Fore
+        } elseif ($LSExecutable.IsMatch($_.Name)) {
+            $Host.UI.RawUI.ForegroundColor = 'DarkRed'
+            $_
+            $Host.UI.RawUI.ForegroundColor = $Fore
+        } elseif ($LSText.IsMatch($_.Name)) {
+            $Host.UI.RawUI.ForegroundColor = 'DarkGreen'
+            $_
+            $Host.UI.RawUI.ForegroundColor = $Fore
+        } elseif ($LSSource.IsMatch($_.Name)) {
+            $Host.UI.RawUI.ForegroundColor = 'DarkGray'
+            $_
+            $Host.UI.RawUI.ForegroundColor = $Fore
+        } else {
+            $_
+        }
     }
 }
 #endregion
 
 
-$profileInitialDir = 'E:\Cher\Scripts'
+$ProfileInitialDir = 'E:\Cher\Scripts'
 $RSSUri = 'http://www.independent.co.uk/news/uk/rss'
-$weatherCity = 'Salisbury'
-$weatherCountry = 'UK'
+$WeatherCity = 'Salisbury'
+$WeatherCountry = 'UK'
 
 # Set initial working directory
-If (Test-Path $profileInitialDir)
+if (Test-Path $ProfileInitialDir)
 {
-    Set-Location $profileInitialDir
+    Set-Location $ProfileInitialDir
 }
 
 # Unregister PowerShell 'ls' alias as we have defined our own 'ls' function
 Remove-Item alias:\ls
 
 # Configure shell theme/size
-$host.UI.RawUI.ForegroundColor = 'Gray'
-$host.UI.RawUI.BackgroundColor = 'DarkMagenta'
-$host.PrivateData.WarningForegroundColor = 'DarkYellow'
-$host.PrivateData.ErrorForegroundColor = 'DarkRed'
-$host.PrivateData.WarningBackgroundColor = 'DarkMagenta'
-$host.PrivateData.ErrorBackgroundColor = 'DarkMagenta'
-$hostBufferSize = $host.UI.RawUI.BufferSize
-$hostBufferSize.Width = 150
-$hostBufferSize.Height = 5000
-$host.UI.RawUI.BufferSize = $hostBufferSize
-$hostWindowSize = $host.UI.RawUI.WindowSize
-$hostWindowSize.Width = 150
-$hostWindowSize.Height = 40
-$host.UI.RawUI.WindowSize = $hostWindowSize
+$Host.UI.RawUI.ForegroundColor = 'Gray'
+$Host.UI.RawUI.BackgroundColor = 'DarkMagenta'
+$Host.PrivateData.WarningForegroundColor = 'DarkYellow'
+$Host.PrivateData.ErrorForegroundColor = 'DarkRed'
+$Host.PrivateData.WarningBackgroundColor = 'DarkMagenta'
+$Host.PrivateData.ErrorBackgroundColor = 'DarkMagenta'
+$HostBufferSize = $Host.UI.RawUI.BufferSize
+$HostBufferSize.Width = 150
+$HostBufferSize.Height = 5000
+$Host.UI.RawUI.BufferSize = $HostBufferSize
+$HostWindowSize = $Host.UI.RawUI.WindowSize
+$HostWindowSize.Width = 150
+$HostWindowSize.Height = 40
+$Host.UI.RawUI.WindowSize = $HostWindowSize
 Clear-Host
 
 # Configure PSReadLine module.PSReadLine is installed by default in Windows 10. 
