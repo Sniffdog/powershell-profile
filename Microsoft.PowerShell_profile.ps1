@@ -1,6 +1,3 @@
-#region modules
-Import-Module $PSScriptRoot\Cowsay.psm1
-#endregion
 #region globals
 $profileInitialDir = 'E:\Cher\Scripts'
 $RSSUri = 'http://www.independent.co.uk/news/uk/rss'
@@ -170,16 +167,3 @@ $timerAction = {
 }
 Register-ObjectEvent -InputObject $timer -EventName Elapsed -SourceIdentifier RSSFeed -Action $timerAction | Out-Null
 $timer.Start()
-
-# Message of the day
-If ((Get-Item $PSScriptRoot\RSSQuote.xml).LastWriteTime.Date -eq (Get-Date).Date)
-{
-    $RSSQuoteItem = (Import-Clixml $PSScriptRoot\RSSQuote.xml).Item.title
-}
-else
-{
-    [xml]$RSSQuote = Invoke-WebRequest -Uri 'https://www.quotesdaddy.com/feed/tagged/inspirational'
-    $RSSQuote.rss.channel | Export-Clixml $PSScriptRoot\RSSQuote.xml
-    $RSSQuoteItem = (Import-Clixml $PSScriptRoot\RSSQuote.xml).Item.title
-}
-Cowsay $RSSQuoteItem
