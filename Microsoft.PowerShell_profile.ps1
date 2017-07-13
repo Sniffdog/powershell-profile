@@ -96,6 +96,11 @@ function Set-ConsoleTheme {
         # Set ColorTable11 (Cyan)
         Set-ItemProperty -Path HKCU:\Console -Name 'ColorTable11' -Value '0x00ffff00' -Type DWord
     }
+    $Confirm = Read-Host -Prompt "Restart PowerShell to enable the theme (Y/N)"
+    if (($Confirm -match "Y") -or ($Confirm -match "Yes")) {
+        Start-Process -FilePath "C:\Windows\System32\WindowsPowerShell\v1.0\powershell.exe"
+        exit
+    }
 }
 
 
@@ -167,16 +172,6 @@ $Host.PrivateData.WarningForegroundColor = 'DarkYellow'
 $Host.PrivateData.ErrorForegroundColor = 'DarkRed'
 $Host.PrivateData.WarningBackgroundColor = 'DarkMagenta'
 $Host.PrivateData.ErrorBackgroundColor = 'DarkMagenta'
-<#
-$HostBufferSize = $Host.UI.RawUI.BufferSize
-$HostBufferSize.Width = 150
-$HostBufferSize.Height = 5000
-$Host.UI.RawUI.BufferSize = $HostBufferSize
-$HostWindowSize = $Host.UI.RawUI.WindowSize
-$HostWindowSize.Width = 150
-$HostWindowSize.Height = 40
-$Host.UI.RawUI.WindowSize = $HostWindowSize
-#>
 Clear-Host
 
 # Configure PSReadLine module.PSReadLine is installed by default in Windows 10. 
