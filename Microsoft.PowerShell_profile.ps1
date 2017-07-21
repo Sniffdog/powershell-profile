@@ -35,7 +35,6 @@ function New-RSSFeedCurrentItem {
                              -replace "&gt;", ">"`
                              -replace "&quot;", '"'`
                              -replace "&amp;", "&"
-    
     $Item = @{
         title = $ItemTitle
         link = $Item.link  
