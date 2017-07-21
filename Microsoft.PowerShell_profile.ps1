@@ -16,8 +16,8 @@
 #region functions
 function prompt {
     # Set prompt options
-    $IndyFeedCurrentItem = Get-Content $PSScriptRoot\RSSFeed.txt
-    $Host.UI.RawUI.WindowTitle = $PWD.Path + " ~ " + $WeatherString + " ~ " + $IndyFeedCurrentItem
+    #$Global:RSSFeedCurrentItem = Get-Content $PSScriptRoot\RSSFeed.txt
+    #$Host.UI.RawUI.WindowTitle = $PWD.Path + " ~ " + $WeatherString + " ~ " + $Global:RSSFeedCurrentItem
     $CurrentDir = Split-Path (Get-Location) -Leaf
     Write-Host "[$env:USERNAME] " -NoNewline -ForegroundColor Cyan
     "$CurrentDir>"
@@ -28,15 +28,24 @@ function New-RSSFeedCurrentItem {
     # Format RSS Item and store in temp file
     param(
         [parameter(mandatory=$true)]
-        [string]$Item
+        $Item
     )
-    $Item = $Item -replace "&apos;", "'"`
-                  -replace "&lt;", "<"`
-                  -replace "&gt;", ">"`
-                  -replace "&quot;", '"'`
-                  -replace "&amp;", "&"
-    $Item | Out-File $PSScriptRoot\RSSFeed.txt
+    $ItemTitle = $Item.title -replace "&apos;", "'"`
+                             -replace "&lt;", "<"`
+                             -replace "&gt;", ">"`
+                             -replace "&quot;", '"'`
+                             -replace "&amp;", "&"
+    
+    $Item = @{
+        title = $ItemTitle
+        link = $Item.link  
+    }
     $Item
+}
+
+
+function Get-CurrentNewsLink { 
+    (New-Object -Com Shell.Application).Open($Global:RSSFeedCurrentItem.link)
 }
 
 
@@ -115,8 +124,8 @@ function ls {
     $LSSource = New-Object System.Text.RegularExpressions.Regex(
         '\.(py|pl|cs|rb|h|cpp)$', $RegexOpts)
     $LSText = New-Object System.Text.RegularExpressions.Regex(
-        '\.(txt|cfg|conf|ini|csv|log|xml)$', $RegexOpts)
-    Invoke-Expression ("Get-ChildItem $args") | ForEach-Object {
+        '\.(txt|cfg|conf|ini|csv|log|xml|md)$', $RegexOpts)
+    Invoke-Expression ("Get-ChildItem $args -Force") | ForEach-Object {
         if ($_.GetType().Name -eq 'DirectoryInfo') {
             $Host.UI.RawUI.ForegroundColor = 'Gray'
             $_
@@ -194,32 +203,32 @@ $WeatherString = $WeatherData.query.results.channel.item.forecast | Where-Object
 $WeatherString = $WeatherString.high + "$([char]0x00B0) " + $WeatherString.text
 
 # Get news feed from RSS url and display in Window title bar
-$i = 0
+$RSSi = 0
 Remove-Item -Path $PSScriptRoot\RSSFeed.* -Force
 [xml]$RSS = Invoke-WebRequest -Uri $RSSUri
 $RSS.rss.channel | Export-Clixml $PSScriptRoot\RSSFeed.xml
 $RSSFeed = Import-Clixml $PSScriptRoot\RSSFeed.xml
-$IndyFeedCurrentItem = New-RSSFeedCurrentItem $RSSFeed.Item[$i].title
-$Host.UI.RawUI.WindowTitle = $PWD.Path + " ~ " + $WeatherString + " ~ " + $IndyFeedCurrentItem
-$i++
+$RSSFeedCurrentItem = New-RSSFeedCurrentItem $RSSFeed.Item[$RSSi]
+$Host.UI.RawUI.WindowTitle = $PWD.Path + " ~ " + $WeatherString + " ~ " + $RSSFeedCurrentItem.title
+$RSSi++
 
 # Set background task to loop through remaining RSS feed items
 $Timer = New-Object System.Timers.Timer
 $Timer.Interval = 30000
 $TimerAction = {
-    if ($i -lt ($RSSFeed.Item.Count)) {
-        $IndyFeedCurrentItem = New-RSSFeedCurrentItem $RSSFeed.Item[$i].title
-        $Host.UI.RawUI.WindowTitle = $PWD.Path + " ~ " + $WeatherString + " ~ " + $IndyFeedCurrentItem
-        $i++
+    if ($RSSi -lt ($RSSFeed.Item.Count)) {
+        $Global:RSSFeedCurrentItem = New-RSSFeedCurrentItem $RSSFeed.Item[$RSSi]
+        $Host.UI.RawUI.WindowTitle = $PWD.Path + " ~ " + $WeatherString + " ~ " + $Global:RSSFeedCurrentItem.title
+        $RSSi++
     } else {
-        $i = 0
+        $RSSi = 0
         Remove-Item -Path $PSScriptRoot\RSSFeed.* -Force
         [xml]$RSS = Invoke-WebRequest -Uri $RSSUri
         $RSS.rss.channel | Export-Clixml $PSScriptRoot\RSSFeed.xml
         $RSSFeed = Import-Clixml $PSScriptRoot\RSSFeed.xml
-        $IndyFeedCurrentItem = New-RSSFeedCurrentItem $RSSFeed.Item[$i].title
-        $Host.UI.RawUI.WindowTitle = $PWD.Path + " ~ " + $WeatherString + " ~ " + $IndyFeedCurrentItem
-        $i++
+        $Global:RSSFeedCurrentItem = New-RSSFeedCurrentItem $RSSFeed.Item[$RSSi]
+        $Host.UI.RawUI.WindowTitle = $PWD.Path + " ~ " + $WeatherString + " ~ " + $Global:RSSFeedCurrentItem.title
+        $RSSi++
     }
 }
 $ObjectEventProps = @{
